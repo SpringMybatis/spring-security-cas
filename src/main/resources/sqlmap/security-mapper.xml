@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.ibs.zj.cas.SecurityMapper">
+	
+	<resultMap type="com.ibs.zj.cas.model.Accounts" id="accountResultMap">
+		<id property="id" column="USER_ID" />
+		<result property="userName" column="USERNAME" />
+		<result property="password" column="PASSWORD" />
+		<result property="activity" column="ACTIVITY" />
+		<collection property="roles" column="USER_ID" javaType="ArrayList" ofType="roleCodeResultMap" select="select-roles-account" />
+	</resultMap>
+
+	<resultMap type="com.ibs.zj.cas.model.RoleCodes" id="roleCodeResultMap">
+		<id property="id" column="ROLE_ID" />
+		<result property="roleCode" column="ROLE_CODE" />
+		<result property="roleName" column="ROLE_NAME" />
+	</resultMap>
+
+	<resultMap type="com.ibs.zj.cas.model.Resources" id="resourceResultMap" >
+		<id property="id" column="RESOURCE_ID" />
+		<result property="resourceName" column="RESOURCE_Name" />
+		<result property="resourceUrl" column="RESOURCE_URL" />
+		<association property="roles" column="RESOURCE_ID" javaType="ArrayList" resultMap="roleCodeResultMap"/>
+		<!-- <collection property="roles" column="RESOURCE_ID" javaType="ArrayList" ofType="roleCodeResultMap" select="select-roles-resource" /> -->
+	</resultMap>
+	
+	<!-- 获取某个用户的角色 -->
+	<select id="getAccountByName" parameterType="java.lang.String" resultMap="accountResultMap">
+		SELECT t.user_id, t.username, t.password, t.activity
+		  FROM cas_pub_user t
+		 WHERE t.username = #{userName}
+	</select>
+	
+	<!-- 获取所有的资源角色  -->
+	<select id="getAllResources" resultMap="resourceResultMap">
+		SELECT t1.resource_id,
+		       t1.resource_name,
+		       t1.resource_url,
+		       t2.role_id,
+		       t2.role_code,
+		       t2.role_name
+		  FROM cas_pub_resource t1, cas_pub_role t2, cas_pub_role_resource t3
+		 WHERE t2.ACTIVITY = 1
+		   and t1.resource_id = t3.resource_id
+		   and t2.role_id = t3.role_id
+	</select>
+	
+	<!-- 用户ID查找角色 -->
+	<select id="select-roles-account" parameterType="Long" resultMap="roleCodeResultMap" >
+     	select t2.role_id, t2.role_code, t2.role_name
+		  from CAS_PUB_USER t0
+		 inner join cas_pub_user_role t1
+		    on t1.user_id = t0.user_id
+		 inner join cas_pub_role t2
+		    on t2.role_id = t1.role_id
+		 where t0.user_id = #{user_id}
+	</select>
+	
+	<!-- 资源ID查找角色 -->
+	<select id="select-roles-resource" parameterType="Long" resultMap="roleCodeResultMap">
+     	SELECT B.role_id, B.role_code, B.role_name
+		  FROM CAS_PUB_ROLE B
+		 WHERE B.role_id IN (SELECT A.role_id
+		                       FROM CAS_PUB_ROLE_RESOURCE A
+		                      WHERE A.resource_id = #{resource_id})
+	</select>
+	
+</mapper>

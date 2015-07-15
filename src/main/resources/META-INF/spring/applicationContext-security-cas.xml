@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="  
+	http://www.springframework.org/schema/beans  
+	http://www.springframework.org/schema/beans/spring-beans.xsd  
+	http://www.springframework.org/schema/security  
+	http://www.springframework.org/schema/security/spring-security-3.1.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+	
+	<http pattern="/index.htm*" security="none" />
+	<!-- <http pattern="/login.jsp" security="none" /> -->
+	<http pattern="/**/nosec/**" security="none" />
+	<http pattern="/menus/getMenuId.html" security="none" />
+	<http pattern="/jsp/sessiontimeout.jsp" security="none" />
+	<http pattern="/extjs/**" security="none" />
+	<http pattern="/mztree2/**" security="none" />
+	<http pattern="/resources/**" security="none" />
+	<http pattern="/openLayers/**" security="none" />
+	<http pattern="/chartsXtE/**" security="none" />
+	<http pattern="/lodop/**" security="none" />
+	<http pattern="/raphael/**" security="none" />
+	<http pattern="/signal/**" security="none" />
+	<http pattern="/MCApp/**" security="none" />
+	<http pattern="/GBApp/**" security="none" />
+	<http pattern="/GZApp/**" security="none" />
+	<http pattern="/MyDesktop/**" security="none" />
+	<http pattern="/util/**" security="none" />
+	<http pattern="/option/**" security="none" />
+	<http pattern="/ibscomm/**" security="none" />
+	<http pattern="/moduleMenu/**" security="none" />
+	<http pattern="/commonGBPlatform/**" security="none" />
+	<http pattern="/asycExport/**" security="none" />
+	<http pattern="/fushionChartController/**" security="none" />
+	<http pattern="/managePrevention/complaintfusion/isComplaintAvaliable.html" security="none" />
+	<http pattern="/ComplaintAutoDeLimitApp/**" security="none" />
+	<http pattern="/ComplaintAutoDeLimitApp.js" security="none" />
+	<!-- http请求配置 -->
+	<http auto-config="true" access-denied-page="/jsp/403.jsp">
+		<form-login login-page="/index.htm"
+			authentication-failure-url="/index.htm" login-processing-url="/j_spring_security_check"
+			username-parameter="username" password-parameter="password"
+			default-target-url="/login.jsp" />
+		<logout invalidate-session="true" logout-url="/j_spring_security_logout"
+			logout-success-url="/index.htm" />
+		<session-management session-fixation-protection="migrateSession"
+			invalid-session-url="/index.htm">
+			<concurrency-control max-sessions="1"
+				error-if-maximum-exceeded="false" expired-url="/login.jsp" />
+		</session-management>
+		<custom-filter ref="filterSecurityInterceptor" before="FILTER_SECURITY_INTERCEPTOR" />
+		<http-basic />
+	</http>
+	<!-- 过滤器配置  -->
+	<beans:bean id="filterSecurityInterceptor" class="com.ibs.zj.cas.uum.security.impl.SecurityFilter">
+		<beans:property name="authenticationManager" ref="authenticationManager" />
+		<beans:property name="accessDecisionManager" ref="accessDecisionManager" />
+		<beans:property name="securityMetadataSource" ref="securityMetadataSource" />
+	</beans:bean>
+	<!-- 决策器 -->
+	<beans:bean id="accessDecisionManager" class="com.ibs.zj.cas.uum.security.impl.AccessDecisionManagerImpl" />
+	<!-- 资源对应的角色  -->
+	<beans:bean id="securityMetadataSource" class="com.ibs.zj.cas.uum.security.impl.SecurityMetadataSource">
+		<beans:constructor-arg index="0" name="securityService" ref="securityService"></beans:constructor-arg>
+	</beans:bean>
+	<!-- 认证管理  -->
+	<authentication-manager alias="authenticationManager">
+		<authentication-provider ref="authenticationProvider" />
+	</authentication-manager>
+	<!-- DAO认证 -->
+	<beans:bean id="authenticationProvider" 
+		class="org.springframework.security.authentication.dao.DaoAuthenticationProvider">
+		<!-- 没有这个将不能准确地报告用户不存在的异常 -->
+		<beans:property name="hideUserNotFoundExceptions" value="false" />
+		<beans:property name="userDetailsService" ref="userDetailsService" />
+	</beans:bean>
+	<!-- 用户对应的角色  -->
+	<beans:bean id="userDetailsService" class="com.ibs.zj.cas.uum.security.impl.UserDetailsServiceImpl">
+		<beans:property name="securityService" ref="securityService" />
+	</beans:bean>
+	<!-- security服务类  -->
+	<beans:bean id="securityService" class="com.ibs.zj.cas.service.impl.SecurityServiceImpl" />
+</beans:beans>
